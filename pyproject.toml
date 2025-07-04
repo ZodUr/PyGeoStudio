@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyGeoStudio"
+version = "0.4.4"
+description = "Raf's Custum verson of pyGeoStudio allowing reading/writing GeoStudio .gsz files"
+readme = "README.md"
+requires-python = ">=3.6, <4"
+authors = [
+    { name = "Raf Somers (creator custum version)", email = "rafsomers2@gmail.com" },
+    { name = "Moise Rousseau (original creator)", email = "rousseau.moise@gmail.com" }
+]
+license = { text = "GNU General Public License v3 (GPLv3)" }
+keywords = ["Geotechnics", "Numerical Simulation", "Hydrogeology", "Optimization"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3"
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "plyfile",
+    "bs4",
+    "lxml",
+    "prettytable"
+]
+
+[project.urls]
+"Bug Reports" = "https://github.com/MoiseRousseau/PyGeoStudio/issues"
+"Source" = "https://github.com/MoiseRousseau/PyGeoStudio/"
+"Documentation" = "https://pygeostudio.readthedocs.io/"
