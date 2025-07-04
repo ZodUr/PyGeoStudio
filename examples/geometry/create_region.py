@@ -7,7 +7,7 @@ Geometry basics
 # %%
 # Open example GeoStudio study
 import PyGeoStudio as pgs
-src_file = "../GeoStudio_files/test.gsz"
+src_file = "examples/GeoStudio_files/test.gsz"
 geofile = pgs.GeoStudioFile(src_file)
 
 # %%
