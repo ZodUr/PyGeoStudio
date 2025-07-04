@@ -24,3 +24,8 @@ geometry.draw(listProperties=True)
 geometry.delete()
 geometry.listProperties()
 geometry.draw()
+
+# Add new point
+geometry.addPoints([[0, 0], [0,1], [1,1]])
+geometry.addRegions([1, 2, 3])
+geometry.draw()

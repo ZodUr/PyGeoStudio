@@ -233,8 +233,10 @@ class Geometry:
               raise ValueError("Input list must be list in format: [[x1, y1], [x2, y2], ...]")
       else:
           raise TypeError("Input list must be list in format: [[x1, y1], [x2, y2], ...]")
-
-      self.points = np.vstack([self.points, arr])
+      if self.points is None:
+          self.points = arr
+      else:
+          self.points = np.vstack([self.points, arr])
       return
 
   def addLines(self, new_lines):
