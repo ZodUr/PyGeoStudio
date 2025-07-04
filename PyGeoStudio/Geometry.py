@@ -81,20 +81,25 @@ class Geometry:
     """
     # print list of properties
     if listProperties:
-        self.listProperties()
+      self.listProperties()
 
-    fig, ax = plt.subplots()
-    # draw points
-    ax.scatter(self.points[:, 0], self.points[:, 1], color='k')
+    if self.points is None:
+      print("No geometry available to draw!")
+      return
 
-    # Label each point with its ID (if pointLabels=True)
-    if pointLabels:
+    else:
+      fig, ax = plt.subplots()
+      # draw points
+      ax.scatter(self.points[:, 0], self.points[:, 1], color='k')
+
+      # Label each point with its ID (if pointLabels=True)
+      if pointLabels:
         for idx, (x, y) in enumerate(self.points):
             point_id = idx + 1
             ax.text(x, y, str(point_id), fontsize=9, ha='right', va='bottom', color='blue')
 
-    # draw lines
-    for region in self.regions.values():
+      # draw regions
+      for region in self.regions.values():
         region = region[0]
         for i in range(len(region) - 1):
             X1, Y1 = self.points[region[i] - 1]
@@ -103,9 +108,9 @@ class Geometry:
         X1, Y1 = self.points[region[-1] - 1]
         X2, Y2 = self.points[region[0] - 1]
         ax.plot([X1, X2], [Y1, Y2], 'k')
-    if show:
+      if show:
         plt.show()
-    return fig, ax
+      return fig, ax
 
   def read(self, element):
       for property_ in element:
@@ -144,18 +149,21 @@ class Geometry:
     """
     List all points, lines, and regions in the geometry in a formatted way.
     """
+    print("\n"+"Geometry properties lists:")
+    print("--------------------------")
     # 1. List all points
+    print("Points:")
     if self.points is not None and len(self.points) > 0:
       table_points = PrettyTable()
       table_points.field_names = ["Index", "Point ID label", "X-co", "Y-co"]
       for idx, (x, y) in enumerate(self.points):
           table_points.add_row([idx, f"Point-{idx + 1}", x, y])
-      print("Points:")
       print(table_points)
     else:
       print("No points defined.")
 
     # 2. List all lines
+    print("\nLines:")
     if self.lines is not None and len(self.lines) > 0:
       table_lines = PrettyTable()
       table_lines.field_names = ["Line Index", "Start Index", "End Index", "Start Label", "End Label",
@@ -170,7 +178,6 @@ class Geometry:
               f"({start_coords[0]:.2f},{start_coords[1]:.2f})",
               f"({end_coords[0]:.2f},{end_coords[1]:.2f})"
           ])
-      print("\nLines:")
       print(table_lines)
     else:
       print("\nNo lines defined.")
@@ -189,6 +196,22 @@ class Geometry:
       print(table_regions)
     else:
       print("No regions defined.")
+
+  def delete(self, points=True, lines=True, regions=True):
+    """
+    Delete all points, lines and / or regions in geometry.
+    If points are deleted, all lines & regions will be too.
+    """
+    if points:
+      regions, lines = True, True
+      self.points = None
+      print("All  points deleted!")
+    if regions:
+      self.regions = {}
+      print("All regions deleted!")
+    if lines:
+      self.lines = None
+      print("All lines deleted!")
 
   def addPoints(self, pts):
       """
