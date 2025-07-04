@@ -135,14 +135,28 @@ class Geometry:
       return
 
   def addPoints(self, pts):
-    """
-    Add points to the geometry.
+      """
+      Add points to the geometry.
 
-    :param pts: XY coordinates of the points
-    :type pts: numpy array or list of list
-    """
-    self.points = np.append(self.points, pts)
-    return
+      :param pts: XY coordinates of the points
+      :type pts: numpy array or list of list
+      """
+      if isinstance(pts, np.ndarray):
+          if pts.ndim != 2 or pts.shape[1] != 2:
+              raise ValueError("Input numpy array must have shape (n, 2).")
+          arr = pts
+      elif isinstance(pts, list):
+          try:
+              arr = np.array(pts, dtype=float)
+              if arr.ndim != 2 or arr.shape[1] != 2:
+                  raise ValueError
+          except Exception:
+              raise ValueError("Input list must be list in format: [[x1, y1], [x2, y2], ...]")
+      else:
+          raise TypeError("Input list must be list in format: [[x1, y1], [x2, y2], ...]")
+
+      self.points = np.vstack([self.points, arr])
+      return
 
   def addLines(self, new_lines):
     """
