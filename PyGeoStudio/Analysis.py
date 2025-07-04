@@ -151,7 +151,6 @@ class TimeIncrements(BasePropertiesClass):
     return
 
 
-
 class Analysis(BasePropertiesClass):
   """
   :param ID: Index of the analysis in GeoStudio file
@@ -228,17 +227,30 @@ class Analysis(BasePropertiesClass):
     """
     self.context = context
     return
-  
+
   def showProblem(self):
     """
     Plot the conceptual problem defined in the analysis (with material distribution)
     """
-    fig,ax = self.data["Geometry"].draw(show=False)
-    cmap = plt.get_cmap('tab20', np.max(list(self.data["Context"]["GeometryUsesMaterials"].values())))
-    for reg, mat_id in self.data["Context"]["GeometryUsesMaterials"].items():
-      pts = self["Geometry"]["Regions"][reg][0]
-      X_pts = [self["Geometry"]["Points"][x-1,0] for x in pts]
-      Y_pts = [self["Geometry"]["Points"][x-1,1] for x in pts]
-      ax.fill(X_pts, Y_pts,color=cmap(mat_id-1))
+    if "Geometry" not in self.data:
+      print("No geometry defined, thus can't show problem.")
+      return
+    fig, ax = self.data["Geometry"].draw(show=False)
+
+    if "Context" not in self.data:
+      raise KeyError("Analysis not properly defined. 'Context' is not available in data.")
+
+    context = self.data["Context"]
+    if "GeometryUsesMaterials" not in context.data:
+      print("No materials assigned to regions. Only geometry is shown.")
+    else:
+      mat_ids_used_per_region = context.data["GeometryUsesMaterials"]
+      cmap = plt.get_cmap('tab20', np.max(list(mat_ids_used_per_region.values())))
+      for reg, mat_id in mat_ids_used_per_region.items():
+        pts = self["Geometry"]["Regions"][reg][0]
+        X_pts = [self["Geometry"]["Points"][x-1,0] for x in pts]
+        Y_pts = [self["Geometry"]["Points"][x-1,1] for x in pts]
+        ax.fill(X_pts, Y_pts,color=cmap(mat_id-1))
+
     plt.show()
     return
