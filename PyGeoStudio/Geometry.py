@@ -18,6 +18,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import xml.etree.ElementTree as ET
+from prettytable import PrettyTable
 
 
 # We do not use the BasePropertiesClass as there is too much specificities here.
@@ -68,15 +69,20 @@ class Geometry:
     else:
         raise KeyError(f"There is no item \"{parameter}\" accessible through Geometry class")
 
-  def draw(self, show=True, pointLabels=True):
+  def draw(self, show=True, pointLabels=True, listProperties=False):
     """
     Draw the geometry using matplotlib and label each point with its ID.
 
-    :param show:        Show the figure (``True``, default) or plot it and show it later (``False``)
-    :param pointLabels: Show point ids as labels in plot (''True'', default or ''False'')
-    :return: Matplotlib figure and axis containing the plotted geometry
-    :rtype: [fig, ax]
+    :param show:            Show the figure (''True'') or plot it and show it later (''False)
+    :param pointLabels:     Show point ids as labels in plot
+    :param listProperties:  Show list all points, lines, and regions in the geometry in a formatted way.
+    :return:                Matplotlib figure and axis containing the plotted geometry
+    :rtype:                 [fig, ax]
     """
+    # print list of properties
+    if listProperties:
+        self.listProperties()
+
     fig, ax = plt.subplots()
     # draw points
     ax.scatter(self.points[:, 0], self.points[:, 1], color='k')
@@ -133,6 +139,56 @@ class Geometry:
           else:
               self.other_elem.append(property_)
       return
+
+  def listProperties(self):
+    """
+    List all points, lines, and regions in the geometry in a formatted way.
+    """
+    # 1. List all points
+    if self.points is not None and len(self.points) > 0:
+      table_points = PrettyTable()
+      table_points.field_names = ["Index", "Point ID label", "X-co", "Y-co"]
+      for idx, (x, y) in enumerate(self.points):
+          table_points.add_row([idx, f"Point-{idx + 1}", x, y])
+      print("Points:")
+      print(table_points)
+    else:
+      print("No points defined.")
+
+    # 2. List all lines
+    if self.lines is not None and len(self.lines) > 0:
+      table_lines = PrettyTable()
+      table_lines.field_names = ["Line Index", "Start Index", "End Index", "Start Label", "End Label",
+                                 "Start coords", "End coords"]
+      for idx, (start, end) in enumerate(self.lines):
+          start_coords = tuple(self.points[start])
+          end_coords = tuple(self.points[end])
+          table_lines.add_row([
+              idx,
+              start, end,
+              f"Point-{start + 1}", f"Point-{end + 1}",
+              f"({start_coords[0]:.2f},{start_coords[1]:.2f})",
+              f"({end_coords[0]:.2f},{end_coords[1]:.2f})"
+          ])
+      print("\nLines:")
+      print(table_lines)
+    else:
+      print("\nNo lines defined.")
+
+    # 3. List all regions
+    print("\nRegions:")
+    if self.regions:
+      table_regions = PrettyTable()
+      table_regions.field_names = ["Region Index", "Region Label", "Point labels", "Point coordinates"]
+      for idx, (label, region_data) in enumerate(self.regions.items()):
+          pt_ids = region_data[0]
+          pt_labels = [f"Point-{pt_id}" for pt_id in pt_ids]
+          pt_coords = [f"({self.points[pt_id - 1][0]:.2f},{self.points[pt_id - 1][1]:.2f})" for pt_id in pt_ids]
+          coord_str = ">".join(pt_coords)
+          table_regions.add_row([idx, label, ", ".join(pt_labels), coord_str])
+      print(table_regions)
+    else:
+      print("No regions defined.")
 
   def addPoints(self, pts):
       """

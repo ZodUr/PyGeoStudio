@@ -19,18 +19,24 @@ geofile = pgs.GeoStudioFile(main_path+"/"+src_file)
 # Show the geometries defined in the study and select the one with ID 1 to draw it
 geofile.showGeometries()
 geometry = geofile.getGeometryByID(1)
+geometry.listProperties()
 geometry.draw()
+
 
 # %%
 # Add new point
-geometry.addPoints([[2, 0], [2.5, -0.5]])
-geometry.draw()
+geometry.addPoints([[2, 0], [3, 0], [2.5, -0.5]])
+geometry.draw(listProperties=True)
 
 # %%
-# Create a new region from point IDs:
-new_region = [2,5,4]
+# Add new region from point IDs:
+new_region = [7, 8, 9]
 geometry.addRegions(new_region)
-geometry.draw()
+geometry.draw(listProperties=True)
+
+# %%
+# Create new region directly from point IDs:
+
 
 # %%
 # Write modified study under new file:
