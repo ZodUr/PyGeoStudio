@@ -40,6 +40,6 @@ geometry.draw(listProperties=True)
 
 # %%
 # Write modified study under new file:
-out_file = "./test2.gsz"
-geofile.saveAs(out_file)
+out_file = "examples/GeoStudio_files/test-basics-geom.gsz"
+geofile.saveAs(main_path+"/"+out_file)
   

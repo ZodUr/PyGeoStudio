@@ -27,5 +27,11 @@ geometry.draw()
 
 # Add new point
 geometry.addPoints([[0, 0], [0,1], [1,1]])
+geometry.addLines([[1, 2], [2, 3], [3,1]])
 geometry.addRegions([1, 2, 3])
-geometry.draw()
+geometry.draw(listProperties=True)
+
+# %%
+# Write modified study under new file:
+out_file = "examples/GeoStudio_files/test-new-geom.gsz"
+geofile.saveAs(main_path+"/"+out_file)

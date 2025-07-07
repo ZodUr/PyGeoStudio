@@ -216,7 +216,6 @@ class Geometry:
   def addPoints(self, pts):
       """
       Add points to the geometry.
-
       :param pts: XY coordinates of the points
       :type pts: numpy array or list of list
       """
@@ -240,14 +239,35 @@ class Geometry:
       return
 
   def addLines(self, new_lines):
-    """
-    Add lines to the geometry.
+      """
+      Add lines to the geometry.
+      :param new_lines: Start-end ID of the point labels that form the lines (point IDs start from 1)
+      :type new_lines: numpy array or list of list
+      """
+      if isinstance(new_lines, np.ndarray):
+          if new_lines.ndim != 2 or new_lines.shape[1] != 2:
+              raise ValueError("Input numpy array must have shape (n, 2).")
+          arr = new_lines
+      elif isinstance(new_lines, list):
+          try:
+              arr = np.array(new_lines, dtype=int)
+              if arr.ndim != 2 or arr.shape[1] != 2:
+                  raise ValueError
+          except Exception:
+              raise ValueError("Input list must be in format: [[start1, end1], [start2, end2], ...]")
+      else:
+          raise TypeError("Input must be a list of lists or a numpy array with shape (n, 2).")
 
-    :param new_lines: Start-end indices of the points that form the lines
-    :type new_lines: numpy array or list of list
-    """
-    self.lines = np.append(self.lines, new_lines)
-    return
+      # Adjust indices to be zero-based if they are one-based
+      if np.any(arr > len(self.points)):
+          raise ValueError("Line indices refer to non-existent points.")
+      arr = arr - 1  # Convert to zero-based indexing
+
+      if self.lines is None:
+          self.lines = arr
+      else:
+          self.lines = np.vstack([self.lines, arr])
+      return
 
   def addRegions(self, pt_ids):
     """
