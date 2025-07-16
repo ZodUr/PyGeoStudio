@@ -69,47 +69,34 @@ class Geometry:
     else:
         raise KeyError(f"There is no item \"{parameter}\" accessible through Geometry class")
 
-  def draw(self, show=True, pointLabels=True, listProperties=False):
-    """
-    Draw the geometry using matplotlib and label each point with its ID.
-
-    :param show:            Show the figure (''True'') or plot it and show it later (''False)
-    :param pointLabels:     Show point ids as labels in plot
-    :param listProperties:  Show list all points, lines, and regions in the geometry in a formatted way.
-    :return:                Matplotlib figure and axis containing the plotted geometry
-    :rtype:                 [fig, ax]
-    """
-    # print list of properties
-    if listProperties:
-      self.listProperties()
-
-    if self.points is None:
-      print("No geometry available to draw!")
-      return
-
-    else:
-      fig, ax = plt.subplots()
-      # draw points
+  def draw(self, pointLabels=True, listProperties=False, figsize=(10, 5)):
+      """
+      Draw the geometry using matplotlib and label each point with its ID.
+      :param pointLabels:     Show point ids as labels in plot
+      :param listProperties:  Show list all points, lines, and regions in the geometry in a formatted way.
+      :param figsize:         Tuple defining the size of the figure (width, height)
+      :return:                Matplotlib figure and axis containing the plotted geometry
+      :rtype:                 [fig, ax]
+      """
+      if listProperties:
+          self.listProperties()
+      if self.points is None:
+          print("No geometry available to draw!")
+          return
+      fig, ax = plt.subplots(figsize=figsize)
       ax.scatter(self.points[:, 0], self.points[:, 1], color='k')
-
-      # Label each point with its ID (if pointLabels=True)
       if pointLabels:
-        for idx, (x, y) in enumerate(self.points):
-            point_id = idx + 1
-            ax.text(x, y, str(point_id), fontsize=9, ha='right', va='bottom', color='blue')
-
-      # draw regions
+          for idx, (x, y) in enumerate(self.points):
+              ax.text(x, y, str(idx + 1), fontsize=9, ha='right', va='bottom', color='blue')
       for region in self.regions.values():
-        region = region[0]
-        for i in range(len(region) - 1):
-            X1, Y1 = self.points[region[i] - 1]
-            X2, Y2 = self.points[region[i + 1] - 1]
-            ax.plot([X1, X2], [Y1, Y2], 'k')
-        X1, Y1 = self.points[region[-1] - 1]
-        X2, Y2 = self.points[region[0] - 1]
-        ax.plot([X1, X2], [Y1, Y2], 'k')
-      if show:
-        plt.show()
+          region = region[0]
+          for i in range(len(region) - 1):
+              X1, Y1 = self.points[region[i] - 1]
+              X2, Y2 = self.points[region[i + 1] - 1]
+              ax.plot([X1, X2], [Y1, Y2], 'k')
+          X1, Y1 = self.points[region[-1] - 1]
+          X2, Y2 = self.points[region[0] - 1]
+          ax.plot([X1, X2], [Y1, Y2], 'k')
       return fig, ax
 
   def read(self, element):
@@ -257,12 +244,10 @@ class Geometry:
               raise ValueError("Input list must be in format: [[start1, end1], [start2, end2], ...]")
       else:
           raise TypeError("Input must be a list of lists or a numpy array with shape (n, 2).")
-
       # Adjust indices to be zero-based if they are one-based
       if np.any(arr > len(self.points)):
           raise ValueError("Line indices refer to non-existent points.")
       arr = arr - 1  # Convert to zero-based indexing
-
       if self.lines is None:
           self.lines = arr
       else:
@@ -278,7 +263,7 @@ class Geometry:
     """
     new_id = len(self.regions) + 1
     new_reg = [pt_ids, []]
-    self.regions[f"Regions-{new_id}"] = new_reg
+    self.regions[f"Region-{new_id}"] = new_reg
     return
 
   def createRegion(self, pts):
