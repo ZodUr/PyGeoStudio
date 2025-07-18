@@ -25,7 +25,7 @@ geometry.draw()
 
 # %%
 # Add new point
-geometry.addPoints([[2, 0], [3, 0], [2.5, -0.5]])
+geometry.addPoints([[2, 0], [3, 0], [2.5, -0.5]],["A", "B", "C"])
 geometry.draw(listProperties=True)
 
 # %%

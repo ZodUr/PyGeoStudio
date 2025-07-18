@@ -17,6 +17,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 
@@ -45,6 +46,7 @@ class Geometry:
 
   def __init__(self):
     self.points = None
+    self.point_table = pd.DataFrame(columns=["Index", "ID label", "X-co", "Y-co", "Note"])
     self.lines = None
     self.mesh_id = None
     self.mesh = None
@@ -86,8 +88,11 @@ class Geometry:
       fig, ax = plt.subplots(figsize=figsize)
       ax.scatter(self.points[:, 0], self.points[:, 1], color='k')
       if pointLabels:
-          for idx, (x, y) in enumerate(self.points):
-              ax.text(x, y, str(idx + 1), fontsize=9, ha='right', va='bottom', color='blue')
+        for idx, row in self.point_table.iterrows():
+            label = f"{idx + 1}"
+            if row["Note"]:
+                label += f"\n({row['Note']})"
+            ax.text(row["X-co"], row["Y-co"], label, fontsize=9, ha='right', va='bottom', color='blue')
       for region in self.regions.values():
           region = region[0]
           for i in range(len(region) - 1):
@@ -102,9 +107,14 @@ class Geometry:
   def read(self, element):
       for property_ in element:
           if property_.tag == "Points":
-              self.points = np.zeros((int(property_.attrib["Len"]), 2), dtype='f8')
+              point_data = []
               for point in property_:
-                  self.points[int(point.attrib["ID"]) - 1] = [float(point.attrib["X"]), float(point.attrib["Y"])]
+                  idx = int(point.attrib["ID"]) - 1
+                  x = float(point.attrib["X"])
+                  y = float(point.attrib["Y"])
+                  point_data.append([idx, f"Point-{idx+1}", x, y, ""])
+              self.point_table = pd.DataFrame(point_data, columns=["Index", "ID label", "X-co", "Y-co", "Note"])
+              self.points = self.point_table[["X-co", "Y-co"]].to_numpy()
           elif property_.tag == "Lines":
               self.lines = np.zeros((int(property_.attrib["Len"]), 2), dtype='i8') - 1
               for line in property_:
@@ -141,48 +151,48 @@ class Geometry:
     # 1. List all points
     print("Points:")
     if self.points is not None and len(self.points) > 0:
-      table_points = PrettyTable()
-      table_points.field_names = ["Index", "Point ID label", "X-co", "Y-co"]
-      for idx, (x, y) in enumerate(self.points):
-          table_points.add_row([idx, f"Point-{idx + 1}", x, y])
-      print(table_points)
+        table_points = PrettyTable()
+        table_points.field_names = ["Index", "Point ID label", "X-co", "Y-co", "Note"]
+        for _, row in self.point_table.iterrows():
+            table_points.add_row(row.tolist())
+        print(table_points)
     else:
-      print("No points defined.")
+        print("No points defined.")
 
     # 2. List all lines
     print("\nLines:")
     if self.lines is not None and len(self.lines) > 0:
-      table_lines = PrettyTable()
-      table_lines.field_names = ["Line Index", "Start Index", "End Index", "Start Label", "End Label",
+        table_lines = PrettyTable()
+        table_lines.field_names = ["Line Index", "Start Index", "End Index", "Start Label", "End Label",
                                  "Start coords", "End coords"]
-      for idx, (start, end) in enumerate(self.lines):
-          start_coords = tuple(self.points[start])
-          end_coords = tuple(self.points[end])
-          table_lines.add_row([
+        for idx, (start, end) in enumerate(self.lines):
+            start_coords = tuple(self.points[start])
+            end_coords = tuple(self.points[end])
+            table_lines.add_row([
               idx,
               start, end,
               f"Point-{start + 1}", f"Point-{end + 1}",
               f"({start_coords[0]:.2f},{start_coords[1]:.2f})",
               f"({end_coords[0]:.2f},{end_coords[1]:.2f})"
-          ])
-      print(table_lines)
+            ])
+        print(table_lines)
     else:
       print("\nNo lines defined.")
 
     # 3. List all regions
     print("\nRegions:")
     if self.regions:
-      table_regions = PrettyTable()
-      table_regions.field_names = ["Region Index", "Region Label", "Point labels", "Point coordinates"]
-      for idx, (label, region_data) in enumerate(self.regions.items()):
-          pt_ids = region_data[0]
-          pt_labels = [f"Point-{pt_id}" for pt_id in pt_ids]
-          pt_coords = [f"({self.points[pt_id - 1][0]:.2f},{self.points[pt_id - 1][1]:.2f})" for pt_id in pt_ids]
-          coord_str = ">".join(pt_coords)
-          table_regions.add_row([idx, label, ", ".join(pt_labels), coord_str])
-      print(table_regions)
+        table_regions = PrettyTable()
+        table_regions.field_names = ["Region Index", "Region Label", "Point labels", "Point coordinates"]
+        for idx, (label, region_data) in enumerate(self.regions.items()):
+            pt_ids = region_data[0]
+            pt_labels = [f"Point-{pt_id}" for pt_id in pt_ids]
+            pt_coords = [f"({self.points[pt_id - 1][0]:.2f},{self.points[pt_id - 1][1]:.2f})" for pt_id in pt_ids]
+            coord_str = ">".join(pt_coords)
+            table_regions.add_row([idx, label, ", ".join(pt_labels), coord_str])
+        print(table_regions)
     else:
-      print("No regions defined.")
+        print("No regions defined.")
 
   def delete(self, points=True, lines=True, regions=True):
     """
@@ -192,6 +202,7 @@ class Geometry:
     if points:
       regions, lines = True, True
       self.points = None
+      self.point_table = pd.DataFrame(columns=["Index", "ID label", "X-co", "Y-co", "Note"])
       print("All  points deleted!")
     if regions:
       self.regions = {}
@@ -200,29 +211,29 @@ class Geometry:
       self.lines = None
       print("All lines deleted!")
 
-  def addPoints(self, pts):
+  def addPoints(self, pts, notes=None):
       """
       Add points to the geometry.
       :param pts: XY coordinates of the points
       :type pts: numpy array or list of list
+      :param notes: Optional list of notes
+      :type notes: list of str or None
       """
-      if isinstance(pts, np.ndarray):
-          if pts.ndim != 2 or pts.shape[1] != 2:
-              raise ValueError("Input numpy array must have shape (n, 2).")
-          arr = pts
-      elif isinstance(pts, list):
-          try:
-              arr = np.array(pts, dtype=float)
-              if arr.ndim != 2 or arr.shape[1] != 2:
-                  raise ValueError
-          except Exception:
-              raise ValueError("Input list must be list in format: [[x1, y1], [x2, y2], ...]")
-      else:
-          raise TypeError("Input list must be list in format: [[x1, y1], [x2, y2], ...]")
-      if self.points is None:
-          self.points = arr
-      else:
-          self.points = np.vstack([self.points, arr])
+      if isinstance(pts, list):
+          pts = np.array(pts, dtype=float)
+      if pts.ndim != 2 or pts.shape[1] != 2:
+          raise ValueError("Points must be a (n, 2) array.")
+      start_idx = len(self.point_table)
+      new_data = {
+          "Index": list(range(start_idx, start_idx + len(pts))),
+          "ID label": [f"Point-{i + 1}" for i in range(start_idx, start_idx + len(pts))],
+          "X-co": pts[:, 0],
+          "Y-co": pts[:, 1],
+          "Note": notes if notes else ["" for _ in range(len(pts))]
+      }
+      new_df = pd.DataFrame(new_data)
+      self.point_table = pd.concat([self.point_table, new_df], ignore_index=True)
+      self.points = self.point_table[["X-co", "Y-co"]].to_numpy()  # Update self.points for compatibility
       return
 
   def addLines(self, new_lines):
